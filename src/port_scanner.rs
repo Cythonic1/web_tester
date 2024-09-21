@@ -12,9 +12,9 @@ use threadpool::ThreadPool;
 struct PageInfo(Response, String);
 
 pub struct PortScanner {
-    client: Client,
-    open_ports: Arc<Mutex<Vec<u16>>>,
-    pool: ThreadPool,
+    pub client: Client,
+    pub open_ports: Arc<Mutex<Vec<u16>>>,
+    pub pool: ThreadPool,
 }
 
 impl PortScanner {
@@ -43,7 +43,16 @@ impl PortScanner {
 
     // Perform DNS lookup for a given domain
     fn dns_look_up(&self, domain: &str) -> Result<Vec<IpAddr>, io::Error> {
-        let ips = lookup_host(domain)?;
+        let stripped_domain = if let Some(stripped) = domain.strip_prefix("https://") {
+            stripped
+        } else if let Some(stripped) = domain.strip_prefix("http://") {
+            stripped
+        } else {
+            domain // Return the original domain if no prefix is found
+        };
+
+        // Perform the DNS lookup
+        let ips = lookup_host(stripped_domain)?;
         Ok(ips.into_iter().filter(|ip| ip.is_ipv4()).collect())
     }
 
