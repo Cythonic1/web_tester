@@ -1,6 +1,6 @@
+mod Models;
 mod common_ports;
 mod port_scanner;
-mod Models;
 use std::time::Instant;
 
 use Models::Scan;
@@ -10,7 +10,6 @@ fn main() {
 
     Models::git_leak::FindGitExpose::enumerate(scanner.client, "http://127.0.0.1");
     // Scan ports
-    // scanner.scan_ports("mohe-dev.pro");
 
     // Measure duration
     let duration = start.elapsed();

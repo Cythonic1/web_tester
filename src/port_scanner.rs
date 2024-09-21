@@ -1,4 +1,5 @@
 use crate::common_ports::MOST_COMMON_PORTS;
+use colored::*;
 use dns_lookup::lookup_host;
 use reqwest::blocking::{Client, Response};
 use std::{
@@ -63,7 +64,12 @@ impl PortScanner {
 
         match TcpStream::connect_timeout(&sock_addr, timeout) {
             Ok(_) => {
-                println!("Port: {} is open on IP {}", port, ips[0]);
+                println!(
+                    "{}",
+                    format!("Port: {} is open on IP {}", port, ips[0])
+                        .green()
+                        .bold()
+                );
                 port
             }
             Err(_) => 0,
