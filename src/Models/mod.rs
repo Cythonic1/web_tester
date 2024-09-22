@@ -25,3 +25,5 @@ pub fn domain_format(domain: &str, open_port: u16) -> String {
     }
 }
 pub mod git_leak;
+pub mod robots;
+pub mod DirectoryBruteForceing;

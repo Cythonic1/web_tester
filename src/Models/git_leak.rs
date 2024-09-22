@@ -9,26 +9,10 @@ use crate::{
 };
 use colored::*;
 use reqwest::StatusCode;
-use tokio::time::sleep;
 
 pub struct FindGitExpose;
 
 impl FindGitExpose {
-    // Function to check if HTTP port is open and return the open port, if any.
-    fn get_open_http_port(domain: &str) -> Option<u16> {
-        let port_scan = PortScanner::new(50);
-        port_scan.scan_ports(domain); // Assuming scan_ports is a blocking function
-        let open_ports = port_scan.open_ports.lock().expect("Failed to lock mutex");
-
-        // Check for common HTTP ports (80, 443, 8080, etc.)
-        for port in &[80, 443, 8080, 8000, 8443] {
-            if open_ports.contains(port) {
-                return Some(*port);
-            }
-        }
-        None
-    }
-
     fn is_git_dir_listing(body: &str) -> bool {
         return body.contains("HEAD")
             && body.contains("refs")
@@ -42,10 +26,9 @@ impl Scan for FindGitExpose {
     fn enumerate(client: reqwest::blocking::Client, domain: &str) {
         // Check if any HTTP port is open and get the port
 
-        if let Some(open_port) = FindGitExpose::get_open_http_port(&domain) {
             // Adjust the protocol based on the port (443, 8443 -> HTTPS)
-            let mut search_git_file = domain_format(domain, open_port);
-            search_git_file = format!("{}/.git", search_git_file);
+            // let mut search_git_file = domain_format(domain, open_port);
+            let search_git_file = format!("{}/.git", domain);
             // Form the URL based on the open port
 
             match client.get(&search_git_file).send() {
@@ -83,16 +66,9 @@ impl Scan for FindGitExpose {
                     println!("Failed to send the request: {}", e);
                 }
             }
-        } else {
-            println!(
-                "{}",
-                "No HTTP ports are open. No further action will be taken."
-                    .red()
-                    .bold()
-            );
         }
     }
-}
+
 
 impl Desc for FindGitExpose {
     fn name(&self) {
