@@ -1,14 +1,15 @@
 use reqwest::blocking::Client;
 
 pub trait Scan {
-    fn enumerate(client: Client, url: &str);
+    fn enumerate(&self, client: Client, url: &str);
 }
-
+#[allow(unused)]
 pub trait Desc {
     fn name(&self);
     fn desc(&self);
 }
 
+#[allow(unused)]
 pub fn domain_format(domain: &str, open_port: u16) -> String {
     // Adjust the protocol based on the port (443, 8443 -> HTTPS)
     let result: String;
@@ -24,6 +25,7 @@ pub fn domain_format(domain: &str, open_port: u16) -> String {
         result
     }
 }
+pub mod DirectoryBruteForceing;
 pub mod git_leak;
 pub mod robots;
-pub mod DirectoryBruteForceing;
+pub mod subdomains;

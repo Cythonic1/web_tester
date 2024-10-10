@@ -5,6 +5,9 @@ edition = "2021"
 
 [dependencies]
 dns-lookup = "2.0.4"
-reqwest = { version = "0.12.7", features = ["blocking"] }
+reqwest = { version = "0.12.7", features = ["blocking", "json"] }
 threadpool = "1.8.1"
 colored = "2.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+url = "2.5.2"

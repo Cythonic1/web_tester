@@ -9,9 +9,21 @@ impl Robots{
     fn check_listing(body: &str) -> bool{
         return body.contains("User-agent: *");
     }
+
+    fn new() -> Self{
+        Robots {  }
+
+    }
+
+    pub fn run(client: reqwest::blocking::Client, url: &str) {
+        let run_robot = Robots::new();
+        run_robot.enumerate(client, url);
+
+
+    }
 }
 impl Scan for Robots{
-    fn enumerate(client: reqwest::blocking::Client, url: &str) {
+    fn enumerate(&self,client: reqwest::blocking::Client, url: &str) {
         let target = format!("{}/robots.txt", url);
         match client.get(target).send() {
             Ok(res) => match res.status() {
@@ -53,5 +65,6 @@ impl Scan for Robots{
 
         }
     }
+
 
 }

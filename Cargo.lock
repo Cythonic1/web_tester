@@ -1204,7 +1204,10 @@ dependencies = [
  "colored",
  "dns-lookup",
  "reqwest",
+ "serde",
+ "serde_json",
  "threadpool",
+ "url",
 ]
 
 [[package]]

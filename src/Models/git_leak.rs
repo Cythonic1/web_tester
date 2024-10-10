@@ -1,17 +1,14 @@
-use std::time::Duration;
-
 // processing : blue
 // bad luck red
 // good luck green
-use crate::{
-    port_scanner::PortScanner,
-    Models::{domain_format, Desc, Scan},
-};
+use crate::Models::{Desc, Scan};
+
 use colored::*;
 use reqwest::StatusCode;
 
 pub struct FindGitExpose;
 
+#[allow(unused)]
 impl FindGitExpose {
     fn is_git_dir_listing(body: &str) -> bool {
         return body.contains("HEAD")
@@ -20,10 +17,20 @@ impl FindGitExpose {
             && body.contains("index")
             && body.contains("objects");
     }
+
+    fn new() -> Self{
+        FindGitExpose{}
+    }
+    pub fn run(client: reqwest::blocking::Client, target: &str){
+        let run_git = FindGitExpose::new();
+        run_git.enumerate(client, target);
+
+
+    }
 }
 
 impl Scan for FindGitExpose {
-    fn enumerate(client: reqwest::blocking::Client, domain: &str) {
+    fn enumerate(&self,client: reqwest::blocking::Client, domain: &str) {
         // Check if any HTTP port is open and get the port
 
             // Adjust the protocol based on the port (443, 8443 -> HTTPS)

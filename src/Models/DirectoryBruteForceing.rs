@@ -8,11 +8,12 @@ use crate::Scan;
 use std::fs::File;
 use std::io::{BufReader, BufRead}; // Added BufRead for reading lines
 use std::sync::Arc;
-
+#[allow(unused)]
 pub struct BruteForce {
     path_file: PathBuf,
 }
 
+#[allow(unused)]
 impl BruteForce {
     pub fn new(path: PathBuf) -> Self {
         BruteForce { path_file: path }
@@ -30,15 +31,23 @@ impl BruteForce {
             Err(_) => {}
         }
     }
+
+    pub fn run(client: reqwest::blocking::Client, target: &str){
+        let path = PathBuf::from("/home/pythonic/Downloads/WordLists/Directories_small.txt");
+        let run_git = BruteForce::new(path);
+        run_git.enumerate(client, target);
+
+
+    }
+
 }
 
 impl Scan for BruteForce {
-    fn enumerate(client: Client, url: &str) {
-        let bruteforce = Self::new(PathBuf::from("/home/pythonic01/make.txt"));
+    fn enumerate(&self,client: Client, url: &str) {
         let pool = ThreadPool::new(20);
 
         let client = Arc::new(client);
-        match File::open(&bruteforce.path_file) {
+        match File::open(self.path_file.clone()) {
             Ok(file) => {
                 let reader = BufReader::new(file);
                 for line in reader.lines() {

@@ -8,8 +8,10 @@ use std::{
     sync::{Arc, Mutex},
     time::Duration,
 };
+use url::Url; // Using `url` crate to parse the URL properly
 use threadpool::ThreadPool;
 #[derive(Debug)]
+#[allow(unused)]
 struct PageInfo(Response, String);
 
 pub struct PortScanner {
@@ -18,6 +20,7 @@ pub struct PortScanner {
     pub pool: ThreadPool,
 }
 
+#[allow(unused)]
 impl PortScanner {
     // Initialize a new PortScanner with a given number of threads
     pub fn new(num_threads: usize) -> Self {
@@ -29,7 +32,7 @@ impl PortScanner {
     }
 
     // Get web headers and body for a given URL
-    pub fn get_web_headers(&self, url: &str) -> PageInfo {
+    fn get_web_headers(&self, url: &str) -> PageInfo {
         let mut res = self.client.get(url).send().expect("Failed to send request");
         println!("{res:#?}");
         println!("The website responded with status: {}", res.status());
@@ -44,17 +47,20 @@ impl PortScanner {
 
     // Perform DNS lookup for a given domain
     fn dns_look_up(&self, domain: &str) -> Result<Vec<IpAddr>, io::Error> {
-        let stripped_domain = if let Some(stripped) = domain.strip_prefix("https://") {
-            stripped
-        } else if let Some(stripped) = domain.strip_prefix("http://") {
-            stripped
-        } else {
-            domain // Return the original domain if no prefix is found
-        };
+        // Parse the URL and extract the host part
+        let url = Url::parse(domain).expect("Failed to parse URL");
 
-        // Perform the DNS lookup
-        let ips = lookup_host(stripped_domain)?;
-        Ok(ips.into_iter().filter(|ip| ip.is_ipv4()).collect())
+        let host = url.host_str().ok_or_else(|| io::Error::new(io::ErrorKind::Other, "No host found in URL"))?;
+
+        // Check if the host is an IP address
+        if let Ok(ip) = host.parse::<IpAddr>() {
+            // If it's an IP address, return it without DNS lookup
+            Ok(vec![ip])
+        } else {
+            // If it's a domain name, perform the DNS lookup
+            let ips = lookup_host(host)?;
+            Ok(ips.into_iter().filter(|ip| ip.is_ipv4()).collect())
+        }
     }
 
     // Scan a port on a list of IPs and return the open port, if any
