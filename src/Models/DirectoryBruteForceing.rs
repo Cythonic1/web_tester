@@ -1,4 +1,3 @@
-
 // Brute forcing Module to find hidden directories.
 
 use std::path::PathBuf;
@@ -21,14 +20,10 @@ impl BruteForce {
 
     fn is_exist(domain: &str, file: String, client: Arc<Client>) {
         let dest = format!("{}/{}", domain, file);
-        match client.get(&dest).send() {
-            Ok(res) => match res.status() {
-                StatusCode::OK => {
-                    println!("File returns 200: {}", dest);
-                }
-                _ => {}
-            },
-            Err(_) => {}
+        if let Ok(res) = client.get(&dest).send() {
+            if res.status() == StatusCode::OK {
+                println!("File returns 200: {}", dest);
+            }
         }
     }
 
@@ -36,8 +31,6 @@ impl BruteForce {
         let path = PathBuf::from("/home/pythonic/Downloads/WordLists/Directories_small.txt");
         let run_git = BruteForce::new(path);
         run_git.enumerate(client, target);
-
-
     }
 
 }

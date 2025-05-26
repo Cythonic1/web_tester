@@ -11,11 +11,11 @@ pub struct FindGitExpose;
 #[allow(unused)]
 impl FindGitExpose {
     fn is_git_dir_listing(body: &str) -> bool {
-        return body.contains("HEAD")
+        body.contains("HEAD")
             && body.contains("refs")
             && body.contains("config")
             && body.contains("index")
-            && body.contains("objects");
+            && body.contains("objects")
     }
 
     fn new() -> Self{

@@ -1,5 +1,14 @@
-<h1> Web tester</h1>
-<h3> Is a fully rust based web scanner with modules and multi threading </h3>
-<h4> Keep  it rustyyy </h4>
-inspiration from Black Hat Rust . <br>
-Under devolopment port scanner in rust with multie threading <br>
+# Web tester
+### Is a fully rust based web scanner with modules and multi threading 
+#### Keep  it rustyyy 
+inspiration from Black Hat Rust . 
+Under devolopment port scanner in rust with multie threading 
+
+## TODOs
+1.  Refactor the command line arguments use clap
+2.  Refactor the help menu
+3.  and other things
+
+
+
+

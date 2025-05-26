@@ -7,7 +7,7 @@ pub struct Robots{}
 
 impl Robots{
     fn check_listing(body: &str) -> bool{
-        return body.contains("User-agent: *");
+        body.contains("User-agent: *")
     }
 
     fn new() -> Self{

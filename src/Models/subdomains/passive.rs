@@ -36,16 +36,12 @@ impl Scan for SubdminaPassive {
                     Ok(json_records) => {
                         let subdomains: HashSet<String> = json_records
                             .into_iter()
-                            .map(|entry| {
+                            .flat_map(|entry| {
                                 entry
                                     .name_value
                                     .split('\n')
                                     .map(|subdomain| subdomain.trim().to_string())
                                     .collect::<Vec<String>>()
-                            })
-                            .flatten()
-                            .filter(|subdomain: &String| {
-                                subdomain != &target && !subdomain.contains('*')
                             })
                             .collect();
                         println!("{:#?}", subdomains);

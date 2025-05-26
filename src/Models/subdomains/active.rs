@@ -1,6 +1,3 @@
-
-
-
 use colored::*;
 use reqwest::{blocking::Client, StatusCode};
 use threadpool::ThreadPool;
@@ -22,26 +19,28 @@ impl   SubDomainActive{
         }
     }
 
-    fn is_exist(client: Arc<Client>, domain: &str, word:&str){
+    fn is_exist(client: Arc<Client>, domain: &str, word: Result<String, std::io::Error>) {
+        let word = match word {
+            Ok(val) => val,
+            Err(err) => {
+                eprintln!("{}", format!("Failed to read word: {}", err).red().bold());
+                return;
+            }
+        };
 
-        let dest  = format!("{word}.{domain}");
-        match client.get(&dest).send() {
-            Ok(res) => match res.status(){
-                StatusCode::OK => {
-                    println!("{}", format!("File return 200: {}", {dest}).green().bold());
-                }
-                _ => {}
+        let dest = format!("{}.{}", word, domain);
 
-            },
-            Err(_) => ()
+        if let Ok(response) = client.get(&dest).send() {
+            if response.status() == StatusCode::OK {
+                println!("{}", format!("File returned 200: {}", dest).green().bold());
+            }
         }
-    } 
+    }
+
     pub fn run(client: reqwest::blocking::Client, target: &str){
         let path = PathBuf::from("/home/pythonic/Downloads/WordLists/Directories_small.txt");
         let run_git = SubDomainActive::new(path);
         run_git.enumerate(client, target);
-
-
     }
 
 }
@@ -52,27 +51,20 @@ impl Scan for SubDomainActive {
 
         let pool = ThreadPool::new(20);
         let client = Arc::new(client);
-        match File::open(&self.wordlist){
-            Ok(file) => {
-                let reader = BufReader::new(file);
-                for line in reader.lines(){
-                    match line{
-                        Ok(line_content) => {
-                            let domain_clone = url.to_string();
-                            let client_clone = Arc::clone(&client);
-                            pool.execute(move || {
-                                SubDomainActive::is_exist(client_clone,&domain_clone, &line_content );
-                            })
-                        },
-                        Err(_) => (),
+        if let Ok(file) = File::open(&self.wordlist) {
+            let reader = BufReader::new(file);
 
-                    }
-                }
+            for line in reader.lines() {
+                let domain_clone = url.to_string();
+                let client_clone = Arc::clone(&client);
 
-            },
-            Err(err) => println!("{}",format!("can not read this file error occur :{err}").red().bold()),
+                pool.execute(move || {
+                    SubDomainActive::is_exist(client_clone, &domain_clone, line);
+                });
+            }
+        } else {
+           eprintln!("{}",format!("Cannot read the wordlist file: {:#?}", self.wordlist).red().bold());
         }
-        
     }
-    
+
 }
