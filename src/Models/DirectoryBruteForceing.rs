@@ -28,7 +28,7 @@ impl BruteForce {
     }
 
     pub fn run(client: reqwest::blocking::Client, target: &str){
-        let path = PathBuf::from("/home/pythonic/Downloads/WordLists/Directories_small.txt");
+        let path = PathBuf::from("~/Downloads/rockyou.txt");
         let run_git = BruteForce::new(path);
         run_git.enumerate(client, target);
     }

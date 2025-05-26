@@ -1,9 +1,10 @@
 #[allow(non_snake_case)]
 mod Models;
-mod common_ports;
-mod port_scanner;
 use std::time::Instant;
+use crate::Models::port_scanner;
+use crate::Models::cli::Cli;
 use std::env;
+use clap::Parser;
 use Models::Scan;
 use colored::*;
 fn help(){
@@ -12,6 +13,8 @@ fn help(){
 }
 
 fn main() {
+    let cli = Cli::parse();
+    println!("{:?}", cli);
     let args : Vec<String> = env::args().collect();
     if args.len() < 2{
         help();

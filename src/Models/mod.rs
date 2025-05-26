@@ -1,13 +1,18 @@
 use reqwest::blocking::Client;
 
+// Add the inisializtion function and inplemented for all of them
 pub trait Scan {
     fn enumerate(&self, client: Client, url: &str);
+    // fn init(&self);
 }
+
 #[allow(unused)]
 pub trait Desc {
     fn name(&self);
     fn desc(&self);
 }
+
+
 
 #[allow(unused)]
 pub fn domain_format(domain: &str, open_port: u16) -> String {
@@ -31,3 +36,6 @@ pub mod DirectoryBruteForceing;
 pub mod git_leak;
 pub mod robots;
 pub mod subdomains;
+pub mod port_scanner;
+pub mod common_ports;
+pub mod cli;
