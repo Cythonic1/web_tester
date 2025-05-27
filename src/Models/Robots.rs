@@ -1,7 +1,9 @@
 use reqwest::StatusCode;
 use colored::*;
 // Module to search for robots.txt file.
-use crate::Scan;
+use crate::{Context, Scan};
+
+use super::{check_target, format_domain};
 
 pub struct Robots{}
 
@@ -10,22 +12,19 @@ impl Robots{
         body.contains("User-agent: *")
     }
 
-    fn new() -> Self{
-        Robots {  }
-
-    }
-
-    pub fn run(client: reqwest::blocking::Client, url: &str) {
-        let run_robot = Robots::new();
-        run_robot.enumerate(client, url);
-
-
-    }
 }
 impl Scan for Robots{
-    fn enumerate(&self,client: reqwest::blocking::Client, url: &str) {
+    fn init(&self) {
+        todo!()
+    }
+    fn enumerate(&self, ctx:&Context){
+        let domain = check_target(ctx);
+
+        let url = format_domain(&domain);
+
         let target = format!("{}/robots.txt", url);
-        match client.get(target).send() {
+
+        match ctx.client.get(target).send() {
             Ok(res) => match res.status() {
                 StatusCode::OK => {
                     let content_len = res.content_length();
@@ -36,6 +35,7 @@ impl Scan for Robots{
                         return ;
                     }
                     println!("{}", "The traget is most likely vulnrable checking the directory listing".blue().bold());
+                    // Check if the really needed
                     if !Robots::check_listing(&body){
                         println!("{}", "The target does not allow listing".red().bold());
                         return ;
@@ -65,6 +65,4 @@ impl Scan for Robots{
 
         }
     }
-
-
 }

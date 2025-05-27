@@ -1,48 +1,43 @@
-use reqwest;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
-use crate::Models::Scan;
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Hash)]
+use crate::{Context, Models::Scan};
 pub struct SubdminaPassive {
-    name_value: String,
+    domain: String
+}
+
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Hash)]
+pub struct CrtInfo {
+    common_name: String
 }
 
 #[allow(unused)]
 impl SubdminaPassive {
-    pub fn new() -> Self {
+    pub fn new(domain:String) -> Self {
         SubdminaPassive {
-            name_value: String::new(),
+            domain
         }
-    }
-    pub fn run(client: reqwest::blocking::Client, target: &str){
-        let run_passive_domains = SubdminaPassive::new();
-        run_passive_domains.enumerate(client, target);
-
-
     }
 
 }
 
 impl Scan for SubdminaPassive {
-    fn enumerate(&self, client: reqwest::blocking::Client, url: &str) {
-        let target = format!("https://crt.sh/?q={}&output=json", url);
-        match client
+    fn init(&self) {
+        todo!()
+    }
+    fn enumerate(&self, ctx:&Context) {
+         
+        let target = format!("https://crt.sh/?q={}&output=json", self.domain);
+        match ctx.client
             .get(target.clone())
             .send()
         {
             Ok(res) => {
-                match res.json::<Vec<SubdminaPassive>>() {
+                match res.json::<Vec<CrtInfo>>() {
                     // Deserialize into Vec, not HashSet
-                    Ok(json_records) => {
-                        let subdomains: HashSet<String> = json_records
+                    Ok(records) => {
+                        let subdomains: HashSet<String> = records
                             .into_iter()
-                            .flat_map(|entry| {
-                                entry
-                                    .name_value
-                                    .split('\n')
-                                    .map(|subdomain| subdomain.trim().to_string())
-                                    .collect::<Vec<String>>()
-                            })
+                            .map(|entry| entry.common_name)
                             .collect();
                         println!("{:#?}", subdomains);
                     }

@@ -1,21 +1,23 @@
 use colored::*;
 use reqwest::{blocking::Client, StatusCode};
-use threadpool::ThreadPool;
+use std::fs;
 
 // This module is only for subdomains bruteforcing.
-use crate::Scan;
-use std::{fs::File, io::{BufRead, BufReader}, path::PathBuf, sync::Arc};
+use crate::{Models::check_target, Context, Models::format_domain, Scan};
+use std::{io::{BufRead, BufReader}, sync::Arc};
 
 
 pub struct SubDomainActive{
-    wordlist: PathBuf
+    wordlist: String,
+    domain: String
 }
 
 #[allow(unused)]
 impl   SubDomainActive{
-    pub fn new(path: PathBuf) -> Self{
-         SubDomainActive{
-            wordlist:path
+    pub fn new(path: String, domain: String) -> Self {
+        SubDomainActive{
+            wordlist : path,
+            domain
         }
     }
 
@@ -30,6 +32,7 @@ impl   SubDomainActive{
 
         let dest = format!("{}.{}", word, domain);
 
+        // TODO: FIX
         if let Ok(response) = client.get(&dest).send() {
             if response.status() == StatusCode::OK {
                 println!("{}", format!("File returned 200: {}", dest).green().bold());
@@ -37,33 +40,40 @@ impl   SubDomainActive{
         }
     }
 
-    pub fn run(client: reqwest::blocking::Client, target: &str){
-        let path = PathBuf::from("/home/pythonic/Downloads/WordLists/Directories_small.txt");
-        let run_git = SubDomainActive::new(path);
-        run_git.enumerate(client, target);
+
+    
+    fn checK_file(wordlist:&str) -> BufReader<fs::File> {
+        match fs::File::open(wordlist){
+            Ok(file) => {
+                BufReader::new(file)
+            },
+            Err(err) => {
+                eprintln!("{err}");
+                std::process::exit(1);
+            }
+        }
     }
 
 }
 
 
 impl Scan for SubDomainActive {
-    fn enumerate(&self,client: reqwest::blocking::Client, url: &str) {
+    fn init(&self) {
+        todo!();
+    }
+    fn enumerate(&self , ctx: &Context){
+        println!("{}", self.wordlist);
+        let reader = SubDomainActive::checK_file(&self.wordlist);
 
-        let pool = ThreadPool::new(20);
-        let client = Arc::new(client);
-        if let Ok(file) = File::open(&self.wordlist) {
-            let reader = BufReader::new(file);
+        let client = Arc::new(ctx.client.clone());
 
-            for line in reader.lines() {
-                let domain_clone = url.to_string();
-                let client_clone = Arc::clone(&client);
+        for line in reader.lines() {
+            let domain_clone = self.domain.to_string();
+            let client_clone = Arc::clone(&client);
 
-                pool.execute(move || {
-                    SubDomainActive::is_exist(client_clone, &domain_clone, line);
-                });
-            }
-        } else {
-           eprintln!("{}",format!("Cannot read the wordlist file: {:#?}", self.wordlist).red().bold());
+            ctx.thread_pool.execute(move || {
+                SubDomainActive::is_exist(client_clone, &domain_clone, line);
+            });
         }
     }
 

@@ -4,8 +4,8 @@ use clap::{Parser, Subcommand};
 #[command(name = "scanner", version = "1.0", author = "Pythonic01")]
 pub struct Cli {
     /// Global target for the scan
-    #[arg(short, long)]
-    pub target: String,
+    #[arg(short, long, global = true, help="(e.g) https://google.com")]
+    pub target: Option<String>,
 
     /// Global timeout for requests
     #[arg(long, default_value = "10")]
@@ -39,4 +39,20 @@ pub enum Commands {
         #[arg(short, long, default_value = "10", help = "Number of threads")]
         threads: usize,
     },
+
+    SubDomainPassive{
+        #[arg(short, long, help = "Custom wordlist to use")]
+        domain: String,
+
+    },
+
+
+    SubDomainActive{
+        #[arg(short, long, help = "Custom wordlist to use")]
+        domain: String,
+
+        #[arg(short, long, help = "Custom wordlist to use")]
+        wordlist: String,
+    },
+    PortScan
 }

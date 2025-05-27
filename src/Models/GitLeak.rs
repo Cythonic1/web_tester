@@ -1,15 +1,20 @@
 // processing : blue
 // bad luck red
 // good luck green
-use crate::Models::{Desc, Scan};
+use crate::{
+    Context,
+    Models::{Desc, Scan},
+};
 
 use colored::*;
 use reqwest::StatusCode;
 
-pub struct FindGitExpose;
+use super::format_domain;
+use super::check_target;
 
-#[allow(unused)]
-impl FindGitExpose {
+pub struct GitLeak;
+
+impl GitLeak {
     fn is_git_dir_listing(body: &str) -> bool {
         body.contains("HEAD")
             && body.contains("refs")
@@ -17,29 +22,23 @@ impl FindGitExpose {
             && body.contains("index")
             && body.contains("objects")
     }
-
-    fn new() -> Self{
-        FindGitExpose{}
-    }
-    pub fn run(client: reqwest::blocking::Client, target: &str){
-        let run_git = FindGitExpose::new();
-        run_git.enumerate(client, target);
-    }
 }
 
-impl Scan for FindGitExpose {
-    fn enumerate(&self,client: reqwest::blocking::Client, domain: &str) {
+impl Scan for GitLeak {
+    fn init(&self) {
+        todo!()
+    }
+    fn enumerate(&self, ctx: &Context) {
         // Check if any HTTP port is open and get the port
-        
-        // Should handle the case where there is a port
-        let search_git_file = if !domain.starts_with("http") && !domain.starts_with("https") {
-            format!("http://{}/.git", domain)
-        } else {
-            format!("{}/.git", domain)
-        };
-        // Form the URL based on the open port
 
-        match client.get(search_git_file).send() {
+
+        let domain = check_target(ctx);
+        // Should handle the case where there is a port
+        // Form the URL based on the open port
+        let search_git_file = format_domain(&domain);
+
+
+        match ctx.client.get(search_git_file).send() {
             Ok(response) => match response.status() {
                 StatusCode::OK => {
                     let url_res = response.url().to_string();
@@ -52,7 +51,7 @@ impl Scan for FindGitExpose {
                         );
                         println!("{}", "Checking for directory listing...".blue().bold());
                         let body = response.text().expect("Cannot convert non-UTF-8 chars");
-                        if FindGitExpose::is_git_dir_listing(&body) {
+                        if GitLeak::is_git_dir_listing(&body) {
                             println!("{}", "Directory listing is enabled.".green().bold());
                         } else {
                             println!("{}", "Directory listing is not enabled.".red().bold());
@@ -77,8 +76,7 @@ impl Scan for FindGitExpose {
     }
 }
 
-
-impl Desc for FindGitExpose {
+impl Desc for GitLeak {
     fn name(&self) {
         println!("Git expose finder");
     }
