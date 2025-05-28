@@ -1,5 +1,6 @@
 use crate::Context;
 // Add the inisializtion function and inplemented for all of them
+#[allow(dead_code)]
 pub trait Scan {
     fn enumerate(&self, ctx:&Context);
     fn init(&self);
@@ -11,21 +12,23 @@ pub trait Desc {
     fn desc(&self);
 }
 
-pub fn check_target(ctx:&Context) -> String{
+// This fucntion now validate that the given is url and return it 
+// unwrapped
+pub fn check_target(ctx:&Context) -> url::Url{
     if let Some(domain) = &ctx.cli.target {
-        return domain.to_string();
+        match url::Url::parse(domain) {
+            Ok(url) => url,
+            Err(err) => {
+                eprintln!("{err}");
+                std::process::exit(1);
+            }
+        }
     } else {
-        eprintln!("");
+        eprintln!("No target found Consider Adding --target <URL>");
         std::process::exit(1);
-    };
-}
-pub fn format_domain(domain: &str) ->  String{
-    if !domain.starts_with("http") && !domain.starts_with("https") {
-        format!("http://{}/.git", domain)
-    } else {
-        format!("{}/.git", domain)
     }
 }
+
 
 #[allow(unused)]
 pub fn domain_format(domain: &str, open_port: u16) -> String {

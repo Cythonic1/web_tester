@@ -3,7 +3,7 @@ use colored::*;
 // Module to search for robots.txt file.
 use crate::{Context, Scan};
 
-use super::{check_target, format_domain};
+use super::{check_target};
 
 pub struct Robots{}
 
@@ -18,9 +18,7 @@ impl Scan for Robots{
         todo!()
     }
     fn enumerate(&self, ctx:&Context){
-        let domain = check_target(ctx);
-
-        let url = format_domain(&domain);
+        let url = check_target(ctx);
 
         let target = format!("{}/robots.txt", url);
 

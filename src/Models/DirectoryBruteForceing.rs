@@ -1,23 +1,28 @@
 // Brute forcing Module to find hidden directories.
-
-use reqwest::{blocking::Client, StatusCode};
+use colored::*;
+use reqwest::{blocking::Client};
 use crate::{Context, Scan};
 use std::fs::{self};
 use std::io::{BufReader, BufRead}; // Added BufRead for reading lines
 use std::sync::Arc;
-use super::{check_target, format_domain};
+use super::{check_target};
+use crate::Models::subdomains::ALLOWED_STATUS_CODES;
+
 
 pub struct BruteForce {
-    path_file: String,
+    wordlist: String,
 }
 
 impl BruteForce {
+    pub fn new(wordlist:String) -> Self {
+        BruteForce { wordlist }
+    }
 
-    fn is_exist(domain: &str, file: String, client: Arc<Client>) {
-        let dest = format!("{}/{}", domain, file);
+    fn is_exist(url: url::Url, file: String, client: Arc<Client>) {
+        let dest = format!("{}{}", url, file);
         if let Ok(res) = client.get(&dest).send() {
-            if res.status() == StatusCode::OK {
-                println!("File returns 200: {}", dest);
+            if ALLOWED_STATUS_CODES.contains(&res.status()) {
+                println!("{}", format!("Status: {}, {}", res.status(), dest).green().bold());
             }
         }
     }
@@ -26,8 +31,7 @@ impl BruteForce {
     fn checK_file(wordlist:&str) -> BufReader<fs::File> {
         match fs::File::open(wordlist){
             Ok(file) => {
-                let reader = BufReader::new(file);
-                return reader;
+                BufReader::new(file)
             },
             Err(err) => {
                 eprintln!("{err}");
@@ -44,21 +48,20 @@ impl Scan for BruteForce {
         todo!()
     }
     fn enumerate(&self,ctx:&Context) {
-        let domain = check_target(&ctx);
-        let url = format_domain(&domain);
+        let url = check_target(ctx);
 
         let client = Arc::new(ctx.client.clone());
 
-        let reader = BruteForce::checK_file(&self.path_file);
+        let reader = BruteForce::checK_file(&self.wordlist);
 
         for line in reader.lines() {
             match line {
                 Ok(line_content) => {
                     // Use line_content as needed
-                    let domain_clone = url.to_string();
+                    let domain_clone = url.clone();
                     let client_clone = Arc::clone(&client); // Clone the Arc to share ownership
                     ctx.thread_pool.execute(move || {
-                        BruteForce::is_exist(&domain_clone, line_content.clone(),  client_clone);
+                        BruteForce::is_exist(domain_clone, line_content.clone(),  client_clone);
                     })
                 }
                 Err(e) => {

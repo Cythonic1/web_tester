@@ -47,26 +47,13 @@ fn main() {
             let op = Models::GitLeak::GitLeak;
             check_target(&ctx.cli);
             execute_operation(&op, &ctx);
-            println!("{:?}", ctx.cli);
         },
         Commands::Robots => {
             let op = Models::Robots::Robots{};
             check_target(&ctx.cli);
             execute_operation(&op, &ctx);
-            println!("{:?}", ctx.cli);
         },
         Commands::All => {
-            check_target(&ctx.cli);
-            println!("{:?}", ctx.cli);
-            todo!()
-        },
-        Commands::PortScan => {
-            check_target(&ctx.cli);
-            println!("{:?}", ctx.cli);
-            todo!()
-
-        },
-        Commands::Search { wordlist, threads } => {
             check_target(&ctx.cli);
             println!("{:?}", ctx.cli);
             todo!()
@@ -75,13 +62,16 @@ fn main() {
             let op = Models::subdomains::passive::SubdminaPassive::new(domain.to_string());
             check_target(&ctx.cli);
             execute_operation(&op, &ctx);
-            println!("{:?}", ctx.cli);
         }
         Commands::SubDomainActive { domain, wordlist } => {
-            let op = Models::subdomains::active::SubDomainActive::new (wordlist.to_string(), domain.to_string());
+            let op = Models::subdomains::active::SubDomainActive::new(wordlist.to_string(), domain.to_string());
             check_target(&ctx.cli);
             execute_operation(&op, &ctx);
-            println!("{:?}", ctx.cli);
+        },
+        Commands::DirEnum { wordlist } => {
+            let op = Models::DirectoryBruteForceing::BruteForce::new(wordlist.to_string());
+            check_target(&ctx.cli);
+            execute_operation(&op, &ctx);
         }
 
     }

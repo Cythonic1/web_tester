@@ -1,16 +1,19 @@
 use colored::*;
-use reqwest::{blocking::Client, StatusCode};
-use std::fs;
+use reqwest::{blocking::Client, header::{HeaderMap, HeaderName, HeaderValue}};
+use std::{fs, str::FromStr, sync::Arc};
 
 // This module is only for subdomains bruteforcing.
-use crate::{Models::check_target, Context, Models::format_domain, Scan};
-use std::{io::{BufRead, BufReader}, sync::Arc};
+use crate::{Context, Models::check_target, Scan};
+use std::{io::{BufRead, BufReader}};
+
+use super::ALLOWED_STATUS_CODES;
 
 
 pub struct SubDomainActive{
     wordlist: String,
     domain: String
 }
+
 
 #[allow(unused)]
 impl   SubDomainActive{
@@ -21,21 +24,30 @@ impl   SubDomainActive{
         }
     }
 
-    fn is_exist(client: Arc<Client>, domain: &str, word: Result<String, std::io::Error>) {
-        let word = match word {
-            Ok(val) => val,
-            Err(err) => {
-                eprintln!("{}", format!("Failed to read word: {}", err).red().bold());
-                return;
-            }
-        };
+    pub fn add_header(headers: &mut HeaderMap, key: &str, value: &str) {
+        if let (Ok(header_name), Ok(header_value)) = (
+            HeaderName::from_str(key),
+            HeaderValue::from_str(value),
+        ) {
+            headers.append(header_name, header_value);
+        } else {
+            eprintln!("Invalid header: key='{}', value='{}'", key, value);
+        }
+    }
 
-        let dest = format!("{}.{}", word, domain);
+    //TODO: Get the target and add the host as header and check
+    fn is_exist(client: Arc<Client>, domain: &str, word: String, target: url::Url) {
 
-        // TODO: FIX
-        if let Ok(response) = client.get(&dest).send() {
-            if response.status() == StatusCode::OK {
-                println!("{}", format!("File returned 200: {}", dest).green().bold());
+
+
+        let subdomain = format!("{}.{}", word, domain);
+        let mut headers = HeaderMap::new();
+        SubDomainActive::add_header(&mut headers, "Host", &subdomain);
+        SubDomainActive::add_header(&mut headers, "User-Agent", "web_.01");
+
+        if let Ok(response) = client.get(target).headers(headers).send() {
+            if ALLOWED_STATUS_CODES.contains(&response.status()) {
+                println!("{}", format!("Status: {}, {}", response.status(), subdomain).green().bold());
             }
         }
     }
@@ -61,20 +73,30 @@ impl Scan for SubDomainActive {
     fn init(&self) {
         todo!();
     }
-    fn enumerate(&self , ctx: &Context){
-        println!("{}", self.wordlist);
-        let reader = SubDomainActive::checK_file(&self.wordlist);
 
+
+    fn enumerate(&self, ctx: &Context) {
+        let reader = SubDomainActive::checK_file(&self.wordlist);
         let client = Arc::new(ctx.client.clone());
+        let url = check_target(ctx);
+
 
         for line in reader.lines() {
-            let domain_clone = self.domain.to_string();
-            let client_clone = Arc::clone(&client);
+            match line {
+                Ok(word) => {
+                    let domain_clone = self.domain.to_string();
+                    let client_clone = Arc::clone(&client);
+                    let target_clone = url.clone();
 
-            ctx.thread_pool.execute(move || {
-                SubDomainActive::is_exist(client_clone, &domain_clone, line);
-            });
+                    ctx.thread_pool.execute(move || {
+                        SubDomainActive::is_exist(client_clone, &domain_clone, word, target_clone);
+                    });
+                }
+                Err(e) => eprintln!("Error reading line from wordlist: {}", e),
+            }
         }
+
+        ctx.thread_pool.join(); 
     }
 
 }

@@ -15,8 +15,9 @@ pub struct PortScanner {
     pub pool: ThreadPool,
 }
 
-// TODO: Implement Displays
+// TODO: Implement Displays or move the port scanner to its own project :D
 #[derive(Debug)]
+#[allow(dead_code)]
 enum PortsError {
     InvalidDomain,
     InvalidIP

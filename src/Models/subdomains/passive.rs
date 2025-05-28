@@ -25,7 +25,6 @@ impl Scan for SubdminaPassive {
         todo!()
     }
     fn enumerate(&self, ctx:&Context) {
-         
         let target = format!("https://crt.sh/?q={}&output=json", self.domain);
         match ctx.client
             .get(target.clone())

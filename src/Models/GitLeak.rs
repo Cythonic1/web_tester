@@ -9,7 +9,6 @@ use crate::{
 use colored::*;
 use reqwest::StatusCode;
 
-use super::format_domain;
 use super::check_target;
 
 pub struct GitLeak;
@@ -32,13 +31,12 @@ impl Scan for GitLeak {
         // Check if any HTTP port is open and get the port
 
 
-        let domain = check_target(ctx);
+        let url = check_target(ctx);
         // Should handle the case where there is a port
         // Form the URL based on the open port
-        let search_git_file = format_domain(&domain);
 
 
-        match ctx.client.get(search_git_file).send() {
+        match ctx.client.get(url).send() {
             Ok(response) => match response.status() {
                 StatusCode::OK => {
                     let url_res = response.url().to_string();
