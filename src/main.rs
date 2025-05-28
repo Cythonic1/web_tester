@@ -25,7 +25,7 @@ fn check_target(args: &Cli) -> bool {
 }
 
 fn execute_operation(op: &impl Scan, ctx: &Context) {
-    op.enumerate(&ctx);
+    op.enumerate(ctx);
 }
 
 
